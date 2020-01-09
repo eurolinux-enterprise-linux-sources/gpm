@@ -1,7 +1,7 @@
 Summary: A mouse server for the Linux console
 Name: gpm
 Version: 1.20.6
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://www.nico.schottelius.org/software/gpm/
@@ -92,6 +92,8 @@ ln -sf libgpm.so.%{LIBVER} %{buildroot}/%{_libdir}/libgpm.so
 
 install -m 644 %{SOURCE3} %{buildroot}%{_mandir}/man1/inputattach.1.gz
 
+rm -f %{buildroot}%{_datadir}/emacs/site-lisp/t-mouse.el
+
 %ifnarch s390 s390x
 mkdir -p %{buildroot}%{_sysconfdir}/rc.d/init.d  
 install -m 755 inputattach %{buildroot}%{_sbindir}
@@ -163,6 +165,9 @@ fi
 %{_libdir}/libgpm.a
 
 %changelog
+* Mon Jun 06 2011 Nikola Pajkovsky <npajkovs@redhat.com> - 1.20.6.12
+- Resolves: #684920 - FTBFS - unpackaged files (do not install t-mouse.el)
+
 * Thu Jun 24 2010 Nikola Pajkovsky <npajkovs@redhat.com> - 1.20.6-11
 - add manpages
 - add Requires: gpm-libs = %{version}-%{release}
