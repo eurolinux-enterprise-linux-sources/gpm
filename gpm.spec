@@ -1,7 +1,7 @@
 Summary: A mouse server for the Linux console
 Name: gpm
 Version: 1.20.7
-Release: 3%{?dist}
+Release: 5%{?dist}
 License: GPLv2 and GPLv2+ with exceptions and GPLv3+ and Verbatim and Copyright only
 Group: System Environment/Daemons
 URL: http://www.nico.schottelius.org/software/gpm/
@@ -177,6 +177,12 @@ fi
 %{_libdir}/libgpm.a
 
 %changelog
+* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 1.20.7-5
+- Mass rebuild 2014-01-24
+
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.20.7-4
+- Mass rebuild 2013-12-27
+
 * Wed Aug 07 2013 Jaromir Capik <jcapik@redhat.com> - 1.20.7-3
 - Removing PDF docs with unclear licensing from the source archive
 - Fixing the license tag
