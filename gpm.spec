@@ -1,9 +1,7 @@
-%define _hardened_build 1
-
 Summary: A mouse server for the Linux console
 Name: gpm
 Version: 1.20.7
-Release: 6%{?dist}
+Release: 3%{?dist}
 License: GPLv2 and GPLv2+ with exceptions and GPLv3+ and Verbatim and Copyright only
 Group: System Environment/Daemons
 URL: http://www.nico.schottelius.org/software/gpm/
@@ -13,10 +11,10 @@ URL: http://www.nico.schottelius.org/software/gpm/
 # and that's why we need to remove them and recreate the tarball
 #
 # 1.] mkdir docs-removal && cd docs-removal
-# 2.] wget http://www.nico.schottelius.org/software/gpm/archives/%%{name}-%%{version}.tar.lzma
-# 3.] tar xf %%{name}-%%{version}.tar.lzma
-# 3.] rm -rf %%{name}-%%{version}/doc/specs
-# 4.] tar cJf %%{name}-%%{version}.tar.xz %%{name}-%%{version}
+# 2.] wget http://www.nico.schottelius.org/software/gpm/archives/%{name}-%{version}.tar.lzma
+# 3.] tar xf %{name}-%{version}.tar.lzma
+# 3.] rm -rf %{name}-%{version}/doc/specs
+# 4.] tar cJf %{name}-%{version}.tar.xz %{name}-%{version}
 
 Source: %{name}-%{version}.tar.xz
 Source1: gpm.service
@@ -75,6 +73,9 @@ mouse support to text-based Linux applications.
 
 %prep
 %setup -q
+
+./autogen.sh
+
 %patch1 -p1 -b .multilib
 %patch2 -p1 -b .lib-silent
 %patch4 -p1 -b .close-fds
@@ -83,12 +84,14 @@ mouse support to text-based Linux applications.
 # not sure if this is really needed
 %patch8 -p1
 
-#%%patch7 -p1 -b .capability
-
-./autogen.sh
-
+#%patch7 -p1 -b .capability
 
 %build
+# ld fails with PIE
+#LDFLAGS='-Wl,-z,relro,-z,now -pie'
+#CFLAGS='-fPIE -DPIE'
+
+LDFLAGS='-Wl,-z,relro,-z,now'
 %configure
 make %{?_smp_mflags}
 
@@ -124,6 +127,11 @@ if [ -e %{_infodir}/gpm.info.gz ]; then
   /sbin/install-info %{_infodir}/gpm.info.gz %{_infodir}/dir || :
 fi
 
+%ifnarch s390 s390x
+%triggerun -- gpm < 1.20.6-15
+/bin/systemctl enable gpm.service >/dev/null 2>&1 || :
+%endif
+
 %preun
 %ifnarch s390 s390x
 %systemd_preun gpm.service
@@ -136,6 +144,11 @@ fi
 %ifnarch s390 s390x
 %systemd_postun_with_restart gpm.service
 %endif
+
+%triggerun -- gpm < 1.20.6-17
+%{_bindir}/systemd-sysv-convert --save gpm >/dev/null 2>&1 ||:
+/bin/systemctl enable gpm.service >/dev/null 2>&1
+/bin/systemctl try-restart gpm.service >/dev/null 2>&1 || :
 
 %post libs -p /sbin/ldconfig
 
@@ -164,18 +177,6 @@ fi
 %{_libdir}/libgpm.a
 
 %changelog
-* Tue Mar 26 2019 Jiri Kucera <jkucera@redhat.com> - 1.20.7-6
-- Remove old scriptlets
-  Enable PIE and RELRO
-  ./autogen.sh runs too early
-  Resolves: #1092527, #1095444
-
-* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 1.20.7-5
-- Mass rebuild 2014-01-24
-
-* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.20.7-4
-- Mass rebuild 2013-12-27
-
 * Wed Aug 07 2013 Jaromir Capik <jcapik@redhat.com> - 1.20.7-3
 - Removing PDF docs with unclear licensing from the source archive
 - Fixing the license tag
